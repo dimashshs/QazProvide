@@ -1,0 +1,21 @@
+name: Deploy to Docker Swarm
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Build and deploy to Swarm
+        run: |
+          docker build -t qazprovide-frontend ./frontend
+          docker build -t qazprovide-backend ./backend
+          docker build -t qazprovide-socket ./socket
+          docker stack deploy -c docker-compose.yml qazprovide
