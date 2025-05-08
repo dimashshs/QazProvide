@@ -75,3 +75,7 @@ Backend: http://localhost:5000/api-docs
 Отправьте изменения (git push origin feature-branch)
 
 Откройте pull request
+
+# Trigger deploy
+
+Trigger CI/CD
