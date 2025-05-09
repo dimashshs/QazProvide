@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  frontend:
+    image: qazprovide-frontend
+    ports:
+      - "3000:3000"
+    deploy:
+      placement:
+        constraints: [node.hostname == worker-1]
+
+  backend:
+    image: qazprovide-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGO_URL=${MONGO_URL}
+    deploy:
+      placement:
+        constraints: [node.hostname == worker-2]
+
+  socket:
+    image: qazprovide-socket
+    ports:
+      - "4000:4000"
+    deploy:
+      placement:
+        constraints: [node.hostname == manager]
