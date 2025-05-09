@@ -1,5 +1,3 @@
-TEST CI/CD
-
 
 QazProvide
 
