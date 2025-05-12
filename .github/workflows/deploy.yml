@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: CI/CD with Docker Hub
 
 on:
   push:
@@ -7,22 +7,26 @@ on:
 
 jobs:
   deploy:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Build frontend
-        run: docker build -t qazprovide-frontend ./frontend
+      - name: Login to Docker Hub
+        run: docker login -u ${{ secrets.DOCKER_USER }} -p ${{ secrets.DOCKER_PASS }}
 
-      - name: Build backend
-        run: docker build -t qazprovide-backend ./backend
-
-      - name: Build socket
-        run: docker build -t qazprovide-socket ./socket
-
-      - name: Deploy to Docker Swarm
+      - name: Build and push frontend
         run: |
-          cd $GITHUB_WORKSPACE
-          docker stack deploy -c docker-compose.yml qazprovide
+          docker build -t ${{ secrets.DOCKER_USER }}/qazprovide-frontend ./frontend
+          docker push ${{ secrets.DOCKER_USER }}/qazprovide-frontend
+
+      - name: Build and push backend
+        run: |
+          docker build -t ${{ secrets.DOCKER_USER }}/qazprovide-backend ./backend
+          docker push ${{ secrets.DOCKER_USER }}/qazprovide-backend
+
+      - name: Build and push socket
+        run: |
+          docker build -t ${{ secrets.DOCKER_USER }}/qazprovide-socket ./socket
+          docker push ${{ secrets.DOCKER_USER }}/qazprovide-socket
