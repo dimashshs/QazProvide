@@ -1,32 +1,34 @@
-name: CI/CD with Docker Hub
+name: CI/CD Pipeline
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted  # Это runner на manager ВМ
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Login to Docker Hub
-        run: docker login -u ${{ secrets.DOCKER_USER }} -p ${{ secrets.DOCKER_PASS }}
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASS }}" | docker login -u "${{ secrets.DOCKER_USER }}" --password-stdin
 
-      - name: Build and push frontend
+      - name: Build and Push Frontend
         run: |
-          docker build -t ${{ secrets.DOCKER_USER }}/qazprovide-frontend ./frontend
-          docker push ${{ secrets.DOCKER_USER }}/qazprovide-frontend
+          docker build -t qazprovidekz/qazprovide-frontend ./frontend
+          docker push qazprovidekz/qazprovide-frontend
 
-      - name: Build and push backend
+      - name: Build and Push Backend
         run: |
-          docker build -t ${{ secrets.DOCKER_USER }}/qazprovide-backend ./backend
-          docker push ${{ secrets.DOCKER_USER }}/qazprovide-backend
+          docker build -t qazprovidekz/qazprovide-backend ./backend
+          docker push qazprovidekz/qazprovide-backend
 
-      - name: Build and push socket
+      - name: Build and Push Socket
         run: |
-          docker build -t ${{ secrets.DOCKER_USER }}/qazprovide-socket ./socket
-          docker push ${{ secrets.DOCKER_USER }}/qazprovide-socket
+          docker build -t qazprovidekz/qazprovide-socket ./socket
+          docker push qazprovidekz/qazprovide-socket
+
+      - name: Deploy to Docker Swarm
+        run: docker stack deploy -c docker-compose.yml qazprovide
