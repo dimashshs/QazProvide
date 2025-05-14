@@ -14,7 +14,7 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - MONGO_URL=mongodb+srv://naimancoolpeople:fluffy123@cluster0.kuongo5.mongodb.net/qazprovide
+      - DB_URL=mongodb+srv://naimancoolpeople:fluffy123@cluster0.kuongo5.mongodb.net/qazprovide
       - PORT=5000
 
     deploy:
