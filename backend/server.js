@@ -29,7 +29,7 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: "*",
+    origin: "http://34.59.36.165:3000",
     credentials: true,
   })
 );
