@@ -18,27 +18,34 @@ router.post("/create-user", upload.single("file"), async (req, res, next) => {
     const userEmail = await User.findOne({ email });
 
     if (userEmail) {
-      // если пользователь уже существует, учетная запись не создается, а файл удаляется
-      const filename = req.file.filename;
-      const filePath = `uploads/${filename}`;
-      fs.unlink(filePath, (err) => {
-        if (err) {
-          console.log(err);
-          res.status(500).json({ message: "Ошибка удаления файла" });
-        }
-      });
+      // если пользователь уже существует, учетная запись не создается
+      // и удаляем файл, если он был загружен
+      if (req.file) {
+        const filename = req.file.filename;
+        const filePath = path.join(__dirname, `./uploads/${filename}`);
+        fs.unlink(filePath, (err) => {
+          if (err) {
+            console.log(err);
+            res.status(500).json({ message: "Ошибка удаления файла" });
+          }
+        });
+      }
 
       return next(new ErrorHandler("Пользователь уже существует", 400));
     }
 
-    const filename = req.file.filename;
-    const fileUrl = path.join(filename);
+    // Если файл был загружен, то присваиваем его URL
+    let fileUrl = null;
+    if (req.file) {
+      const filename = req.file.filename;
+      fileUrl = path.join(filename); // Составляем путь к файлу
+    }
 
     const user = {
       name: name,
       email: email,
       password: password,
-      avatar: fileUrl,
+      avatar: fileUrl, // Если файла нет, здесь будет null
     };
 
     const activationToken = createActivationToken(user);
@@ -50,11 +57,11 @@ router.post("/create-user", upload.single("file"), async (req, res, next) => {
       await sendMail({
         email: user.email,
         subject: "Активируйте свою учетную запись",
-        message: `Здравствуйте, ${user.name}, пожалуйста, перейдите по ссылке, чтобы активировать свой аккаунт: ${activationUrl} `,
+        message: `Здравствуйте, ${user.name}, пожалуйста, перейдите по ссылке, чтобы активировать свой аккаунт: ${activationUrl}`,
       });
       res.status(201).json({
         success: true,
-        message: `пожалуйста, проверьте свой адрес электронной почты:- ${user.email}, чтобы активировать свою учетную запись!`,
+        message: `Пожалуйста, проверьте свой адрес электронной почты: ${user.email}, чтобы активировать свою учетную запись!`,
       });
     } catch (err) {
       return next(new ErrorHandler(err.message, 500));
