@@ -4,10 +4,8 @@ const User = require("../model/user");
 const { upload } = require("../multer");
 const ErrorHandler = require("../utils/ErrorHandler");
 const fs = require("fs");
-const jwt = require("jsonwebtoken");
 const sendMail = require("../utils/sendMail");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
-const sendToken = require("../utils/jwtToken");
 const { isAuthenticated, isAdmin } = require("../middleware/auth");
 
 const router = express.Router();
@@ -15,102 +13,36 @@ const router = express.Router();
 router.post("/create-user", upload.single("file"), async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
+
     const userEmail = await User.findOne({ email });
-
     if (userEmail) {
-      // если пользователь уже существует, учетная запись не создается
-      // и удаляем файл, если он был загружен
-      if (req.file) {
-        const filename = req.file.filename;
-        const filePath = path.join(__dirname, `./uploads/${filename}`);
-        fs.unlink(filePath, (err) => {
-          if (err) {
-            console.log(err);
-            res.status(500).json({ message: "Ошибка удаления файла" });
-          }
-        });
-      }
-
+      // Если пользователь существует — ошибка
       return next(new ErrorHandler("Пользователь уже существует", 400));
     }
 
-    // Если файл был загружен, то присваиваем его URL
     let fileUrl = null;
     if (req.file) {
-      const filename = req.file.filename;
-      fileUrl = path.join(filename); // Составляем путь к файлу
+      fileUrl = req.file.filename;
     }
 
-    const user = {
-      name: name,
-      email: email,
-      password: password,
-      avatar: fileUrl, // Если файла нет, здесь будет null
-    };
+    const user = await User.create({
+      name,
+      email,
+      password,
+      avatar: fileUrl,
+    });
 
-    const activationToken = createActivationToken(user);
-
-    const activationUrl = `http://34.59.36.165:3000/activation/${activationToken}`;
-
-    // send email to user
-    try {
-      await sendMail({
-        email: user.email,
-        subject: "Активируйте свою учетную запись",
-        message: `Здравствуйте, ${user.name}, пожалуйста, перейдите по ссылке, чтобы активировать свой аккаунт: ${activationUrl}`,
-      });
-      res.status(201).json({
-        success: true,
-        message: `Пожалуйста, проверьте свой адрес электронной почты: ${user.email}, чтобы активировать свою учетную запись!`,
-      });
-    } catch (err) {
-      return next(new ErrorHandler(err.message, 500));
-    }
+    // Отправляем сразу успешный ответ, без активации
+    res.status(201).json({
+      success: true,
+      message: "Аккаунт успешно создан!",
+      user,
+    });
   } catch (err) {
-    return next(new ErrorHandler(err.message, 400));
+    return next(new ErrorHandler(err.message, 500));
   }
 });
 
-// создаем токен активации
-const createActivationToken = (user) => {
-  return jwt.sign(user, process.env.ACTIVATION_SECRET, {
-    expiresIn: "5m",
-  });
-};
-
-// активируем учетную запись пользователя
-router.post(
-  "/activation",
-  catchAsyncErrors(async (req, res, next) => {
-    try {
-      const { activation_token } = req.body;
-
-      const newUser = jwt.verify(
-        activation_token,
-        process.env.ACTIVATION_SECRET
-      );
-      if (!newUser) {
-        return next(new ErrorHandler("Invalid token", 400));
-      }
-      const { name, email, password, avatar } = newUser;
-
-      let user = await User.findOne({ email });
-
-      if (user) {
-        return next(new ErrorHandler("Пользователь уже существует", 400));
-      }
-      user = await User.create({
-        name,
-        email,
-        avatar,
-        password,
-      });
-      sendToken(user, 201, res);
-    } catch (error) {
-      return next(new ErrorHandler(error.message, 500));
-    }
-  })
-);
 
 // login user
 router.post(
@@ -137,7 +69,11 @@ router.post(
           new ErrorHandler("Пожалуйста, предоставьте правильную информацию", 400)
         );
       }
-      sendToken(user, 201, res);
+      res.status(200).json({
+        success: true,
+         message: "Успешный вход",
+         user,
+    });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
     }
