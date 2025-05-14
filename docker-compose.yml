@@ -14,7 +14,7 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - ~/backend/uploads:/app/uploads
+      - ~/uploads:/app/uploads
     environment:
       - DB_URL=mongodb+srv://naimancoolpeople:fluffy123@cluster0.kuongo5.mongodb.net/
       - PORT=5000
