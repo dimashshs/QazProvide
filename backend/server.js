@@ -7,7 +7,7 @@ const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const path = require("path");
-
+const PORT = process.env.PORT || 5000;
 // config
 if (process.env.NODE_ENV !== "PRODUCTION") {
   require("dotenv").config({
@@ -29,7 +29,7 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: "*",
     credentials: true,
   })
 );
