@@ -19,46 +19,35 @@ router.post("/create-user", upload.single("file"), async (req, res, next) => {
 
     if (userEmail) {
       // если пользователь уже существует, учетная запись не создается, а файл удаляется
-      const filename = req.file.filename;
-      const filePath = `uploads/${filename}`;
-      fs.unlink(filePath, (err) => {
-        if (err) {
-          console.log(err);
-          res.status(500).json({ message: "Ошибка удаления файла" });
-        }
-      });
+      if (req.file) {
+        const filename = req.file.filename;
+        const filePath = `uploads/${filename}`;
+        fs.unlink(filePath, (err) => {
+          if (err) {
+            console.log(err);
+            res.status(500).json({ message: "Ошибка удаления файла" });
+          }
+        });
+      }
 
       return next(new ErrorHandler("Пользователь уже существует", 400));
     }
 
-    const filename = req.file.filename;
-    const fileUrl = path.join(filename);
-
-    const user = {
-      name: name,
-      email: email,
-      password: password,
-      avatar: fileUrl,
-    };
-
-    const activationToken = createActivationToken(user);
-
-    const activationUrl = `http://34.59.36.165:3000/activation/${activationToken}`;
-
-    // send email to user
-    try {
-      await sendMail({
-        email: user.email,
-        subject: "Активируйте свою учетную запись",
-        message: `Здравствуйте, ${user.name}, пожалуйста, перейдите по ссылке, чтобы активировать свой аккаунт: ${activationUrl} `,
-      });
-      res.status(201).json({
-        success: true,
-        message: `пожалуйста, проверьте свой адрес электронной почты:- ${user.email}, чтобы активировать свою учетную запись!`,
-      });
-    } catch (err) {
-      return next(new ErrorHandler(err.message, 500));
+    let fileUrl = null;
+    if (req.file) {
+      fileUrl = req.file.filename;
     }
+
+    const user = await User.create({
+      name,
+      email,
+      password,
+      avatar: fileUrl,
+    });
+
+    // сразу отправляем JWT токен после создания пользователя
+    sendToken(user, 201, res);
+
   } catch (err) {
     return next(new ErrorHandler(err.message, 400));
   }
