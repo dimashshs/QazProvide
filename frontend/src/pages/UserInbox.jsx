@@ -10,7 +10,7 @@ import { AiOutlineArrowRight, AiOutlineSend } from "react-icons/ai";
 import { TfiGallery } from "react-icons/tfi";
 import styles from "../styles/styles";
 
-const ENDPOINT = "http://localhost:4000/";
+const ENDPOINT = "http://34.59.36.165:4000/";
 const socketId = socketIO(ENDPOINT, { transports: ["websocket"] });
 
 const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/8801/8801434.png"
