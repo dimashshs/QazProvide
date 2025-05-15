@@ -7,7 +7,7 @@ services:
       - "3000:3000"
     deploy:
       placement:
-        constraints: [node.hostname == worker-1]
+        constraints: [node.role != manager]
 
   backend:
     image: qazprovidekz/qazprovide-backend
