@@ -45,7 +45,7 @@ router.post("/create-shop", upload.single("file"), async (req, res, next) => {
 
     const activationToken = createActivationToken(seller);
 
-    const activationUrl = `http://localhost:3000/seller/activation/${activationToken}`;
+    const activationUrl = `http://34.59.36.165:3000/seller/activation/${activationToken}`;
 
     try {
       await sendMail({
