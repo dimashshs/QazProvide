@@ -18,7 +18,7 @@ const Login = () => {
 
         await axios
             .post(
-                `${server}/user/login-user`,
+                `http://34.59.36.165:5000/api/v2/user/login-user`,
                 {
                     email,
                     password,
