@@ -53,6 +53,7 @@ router.post("/create-user", upload.single("file"), async (req, res, next) => {
   }
 });
 
+
 // создаем токен активации
 const createActivationToken = (user) => {
   return jwt.sign(user, process.env.ACTIVATION_SECRET, {
@@ -402,3 +403,5 @@ router.delete(
 );
 
 module.exports = router;
+
+
