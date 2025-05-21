@@ -6,8 +6,9 @@ services:
     ports:
       - "3000:3000"
     deploy:
-      placement:
-        constraints: [node.role != manager]
+      replicas: 2   # Запусти 2 копии, будут на любых доступных нодах
+      restart_policy:
+        condition: on-failure
 
   backend:
     image: qazprovidekz/qazprovide-backend
@@ -18,15 +19,16 @@ services:
     environment:
       - DB_URL=mongodb+srv://naimancoolpeople:fluffy123@cluster0.kuongo5.mongodb.net/
       - PORT=5000
-
     deploy:
-      placement:
-        constraints: [node.hostname == manager]
+      replicas: 2
+      restart_policy:
+        condition: on-failure
 
   socket:
     image: qazprovidekz/qazprovide-socket
     ports:
       - "4000:4000"
     deploy:
-      placement:
-        constraints: [node.hostname == worker-2]
+      replicas: 1   # если нужен только один экземпляр
+      restart_policy:
+        condition: on-failure
